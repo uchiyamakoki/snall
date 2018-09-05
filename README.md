@@ -121,6 +121,11 @@ public ServerResponse updateCategoryName(Integer categoryId, String categoryName
 同样调用categorymapper的更新方法，一样会返回int，判断一下即可分辨成功失败。
 最后在Controller中检验管理员成功后，调用Service的更新功能，之后加上mapping和body
 
+2018.9.1：
+
+
+
+
 
 
 
