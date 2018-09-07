@@ -1,5 +1,9 @@
 package com.snall.service.impl;
 
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import com.google.common.collect.Lists;
 import com.snall.common.ResponseCode;
 import com.snall.common.ServerResponse;
 import com.snall.dao.CategoryMapper;
@@ -10,10 +14,13 @@ import com.snall.service.IProductService;
 import com.snall.util.DateTimeUtil;
 import com.snall.util.PropertiesUtil;
 import com.snall.vo.ProductDetailVo;
+import com.snall.vo.ProductListVo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.List;
 
 @Service("iProductService")
 public class ProductServiceImpl implements IProductService{
@@ -79,6 +86,25 @@ public class ProductServiceImpl implements IProductService{
         return ServerResponse.createBySuccess(productDetailVo);//范型实现类与接口一致
     }
 
+    @Override
+    public ServerResponse getProductList(int pageNum, int pageSize) {
+        //startPage--start
+        //填充自己的sql查询逻辑
+        //pageHelper--收尾
+        PageHelper.startPage(pageNum,pageSize);
+        List<Product> productList=productMapper.selectList();
+
+        List<ProductListVo> productListVoList= Lists.newArrayList();
+
+        for (Product productItem:productList){
+            ProductListVo productListVo=assembleProductListVo(productItem);
+            productListVoList.add(productListVo);
+        }
+        PageInfo pageResult=new PageInfo(productList);
+        pageResult.setList(productListVoList);
+        return ServerResponse.createBySuccess(pageResult);
+    }
+
     private ProductDetailVo assembleProductDetailVo(Product product){
         ProductDetailVo productDetailVo=new ProductDetailVo();
         productDetailVo.setId(product.getId());
@@ -108,6 +134,19 @@ public class ProductServiceImpl implements IProductService{
         return productDetailVo;
 
 
+    }
+
+    private ProductListVo assembleProductListVo(Product product){
+        ProductListVo productListVo=new ProductListVo();
+        productListVo.setId(product.getId());
+        productListVo.setName(product.getName());
+        productListVo.setCategoryId(product.getCategoryId());
+        productListVo.setImageHost(PropertiesUtil.getProperty("ftp.server.http.prefix","ftp://127.0.0.1/"));
+        productListVo.setMainImage(product.getMainImage());
+        productListVo.setPrice(product.getPrice());
+        productListVo.setSubtitle(product.getSubtitle());
+        productListVo.setStatus(product.getStatus());
+        return productListVo;
     }
 
 
