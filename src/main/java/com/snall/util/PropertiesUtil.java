@@ -16,7 +16,7 @@ public class PropertiesUtil {
     private static Logger logger = LoggerFactory.getLogger(PropertiesUtil.class);
 
     private static Properties props;
-
+    //静态块（仅仅会执行一次）> 普通代码块 构造代码块
     static {
         String fileName = "mmall.properties";
         props = new Properties();

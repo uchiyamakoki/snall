@@ -2,9 +2,14 @@ package com.snall.service.impl;
 
 import com.snall.common.ResponseCode;
 import com.snall.common.ServerResponse;
+import com.snall.dao.CategoryMapper;
 import com.snall.dao.ProductMapper;
+import com.snall.pojo.Category;
 import com.snall.pojo.Product;
 import com.snall.service.IProductService;
+import com.snall.util.DateTimeUtil;
+import com.snall.util.PropertiesUtil;
+import com.snall.vo.ProductDetailVo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,6 +20,9 @@ public class ProductServiceImpl implements IProductService{
 
     @Autowired
     private ProductMapper productMapper;
+
+    @Autowired
+    private CategoryMapper categoryMapper;
 
     @Override
     public ServerResponse saveOrUpdateProduct(Product product) {
@@ -56,5 +64,51 @@ public class ProductServiceImpl implements IProductService{
         }
         return ServerResponse.createByErrorMessage("修改产品信息失败");
     }
+
+    @Override
+    public ServerResponse<ProductDetailVo> manageProductDetail(Integer productId) {
+        if (productId==null){
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.ILLEGAL_ARGUMENT.getCode(),ResponseCode.ILLEGAL_ARGUMENT.getDesc());
+        }
+        Product product=productMapper.selectByPrimaryKey(productId);
+        if (product==null){
+            return ServerResponse.createByErrorMessage("产品已经下架或者删除");
+        }
+        //pojo bo(business) vo(view)
+        ProductDetailVo productDetailVo=assembleProductDetailVo(product);
+        return ServerResponse.createBySuccess(productDetailVo);//范型实现类与接口一致
+    }
+
+    private ProductDetailVo assembleProductDetailVo(Product product){
+        ProductDetailVo productDetailVo=new ProductDetailVo();
+        productDetailVo.setId(product.getId());
+        productDetailVo.setSubtitle(product.getSubtitle());
+        productDetailVo.setPrice(product.getPrice());
+        productDetailVo.setMainImage(product.getMainImage());
+        productDetailVo.setSubImages(product.getSubImages());
+        productDetailVo.setCategoryId(product.getCategoryId());
+        productDetailVo.setDetail(product.getDetail());
+        productDetailVo.setName(product.getName());
+        productDetailVo.setStatus(product.getStatus());
+        productDetailVo.setStock(product.getStock());
+
+        //配置和代码业务隔离
+        productDetailVo.setImageHost(PropertiesUtil.getProperty("ftp.server.http.prefix","ftp://127.0.0.1/"));
+
+        Category category=categoryMapper.selectByPrimaryKey(product.getCategoryId());
+        if (category==null){
+            productDetailVo.setParentCategoryId(0);//认为是一个根节点
+        }else {
+            productDetailVo.setParentCategoryId(category.getParentId());
+        }
+
+        productDetailVo.setCreateTime(DateTimeUtil.dateToStr(product.getCreateTime()));
+        productDetailVo.setUpdateTime(DateTimeUtil.dateToStr(product.getUpdateTime()));
+
+        return productDetailVo;
+
+
+    }
+
 
 }
