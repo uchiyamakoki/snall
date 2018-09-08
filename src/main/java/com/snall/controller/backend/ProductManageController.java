@@ -99,5 +99,23 @@ public class ProductManageController {
         }
     }
 
+    @RequestMapping("search.do")
+    @ResponseBody
+    public ServerResponse productSearch(HttpSession session,String productName ,Integer productId,@RequestParam(value = "pageNum",defaultValue = "1") int pageNum,@RequestParam(value = "pageSize",defaultValue = "10") int pageSize){
+        //session检测登录
+        User user= (User) session.getAttribute(Const.CURRENT_USER);
+        //如果未登录
+        if (user==null){
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),"用户未登录，请登录管理员");
+        }
+        //判断用户是否拥有权限 数字确定权限，这里是简单的管理员用户区分
+        if (iUserService.checkAdminRole(user).isSuccess()){
+            //填充我们增加产品的业务逻辑
+            return iProductService.searchProduct(productName,productId,pageNum,pageSize);
+        }else {
+            return ServerResponse.createByErrorMessage("无权限操作");
+        }
+    }
+
 
 }
