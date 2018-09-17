@@ -123,6 +123,58 @@ public ServerResponse updateCategoryName(Integer categoryId, String categoryName
 
 2018.9.1：
 
+2018.9.17
+
+这次主要是更新和删除购物车相关
+
+贴一下Service的
+
+首先都是产品id和数量不能null
+查询购物车所以需要用户id和产品id 还想了一会儿。。
+更新购物车中产品的数量 就是你要买多少，豁然开朗。。
+再更新购物车
+最后返回反正都是返回CartVo
+``` HTML
+if (productId==null ||  count==null){
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.ILLEGAL_ARGUMENT.getCode(),ResponseCode.ILLEGAL_ARGUMENT.getDesc());
+        }
+        Cart cart=cartMapper.selectCartByUserIdProductId(userId,productId);
+        if (cart!=null){
+            cart.setQuantity(count);
+        }
+        cartMapper.updateByPrimaryKeySelective(cart);
+        CartVo cartVo=this.getCartVoLimit(userId);
+        return ServerResponse.createBySuccess(cartVo);
+```
+
+再理一理删除时候的逻辑,删除可能多个（这里是靠字符串逗号分割）
+``` HTML
+ List<String> productList= Splitter.on(",").splitToList(productIds);
+        if (CollectionUtils.isEmpty(productList)){
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.ILLEGAL_ARGUMENT.getCode(),ResponseCode.ILLEGAL_ARGUMENT.getDesc());
+        }
+        cartMapper.deleteByUserIdProductIds(userId,productList);
+        CartVo cartVo=this.getCartVoLimit(userId);
+        return ServerResponse.createBySuccess(cartVo);
+```
+List<String> productList= Splitter.on(",").splitToList(productIds);
+emmm切割的还行。
+
+然后练习一下delete语句嘿嘿
+``` HTML
+<delete id="deleteByUserIdProductIds">
+    DELETE FROM mmall_cart
+    WHERE user_id=#{userId}
+    <if test="productIdList != null">
+      and product_id in
+      <foreach collection="productIdList" item="item" index="index" open="{" separator="," close="}">
+        #{item}
+      </foreach>
+    </if>
+  </delete>
+```
+今天先写到这了。
+
 
 
 
