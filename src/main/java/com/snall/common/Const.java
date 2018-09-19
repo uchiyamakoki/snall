@@ -15,7 +15,7 @@ public class Const {
     }
 
     public interface Cart{
-        int CHECK=1;//即购物车选中状态
+        int CHECKED=1;//即购物车选中状态
         int UN_CHECKED=0;//购物车中未选中状态
 
         String LIMIT_NUM_FATL="LIMIT_NUM_FATL";
